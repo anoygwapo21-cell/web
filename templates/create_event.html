@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Create Event - Events App{% endblock %}
+{% block content %}
+  <section class="container fade-in">
+    <div class="form" style="max-width:720px; margin:auto;">
+      <h2>Create an event</h2>
+      <form method="post" class="form-container">
+        <label>Title
+          <input type="text" name="title" required placeholder="Event title">
+        </label>
+
+        <label>Description
+          <textarea name="description" rows="4" placeholder="Describe the event (optional)"></textarea>
+        </label>
+
+        <label>Date & time
+          <input type="datetime-local" name="event_datetime" required>
+        </label>
+
+        <label>Location
+          <input type="text" name="location" placeholder="Optional location">
+        </label>
+
+        {% if session.get('role') == 'admin' %}
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" name="visible_to_all" checked>
+          <span>Visible to all users (public event)</span>
+        </label>
+        {% endif %}
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn primary" type="submit">Create event</button>
+          <a class="btn ghost" href="{{ url_for('events') }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </section>
+{% endblock %}

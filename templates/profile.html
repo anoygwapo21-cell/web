@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Profile - Events App{% endblock %}
+{% block content %}
+  <section class="container fade-in" style="max-width:720px;">
+    <div class="form" style="margin:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Your profile</h2>
+        <!-- Add Event button in profile/dashboard for every logged-in user -->
+        <div>
+          <a class="btn primary" href="{{ url_for('create_event') }}">+ Add Event</a>
+        </div>
+      </div>
+
+      <p><strong>Username:</strong> {{ username }}</p>
+      <p class="muted"><strong>Role:</strong> {{ role or 'user' }}</p>
+
+      {% if session.get('role') == 'admin' %}
+        <hr style="margin:12px 0;">
+        <h3>Admin actions</h3>
+        <form method="post" action="{{ url_for('promote_user', username='') }}" onsubmit="event.preventDefault(); promote();">
+          <label>Promote user (enter username)</label>
+          <input id="promote-input" type="text" placeholder="username" style="width:100%; padding:8px; border-radius:8px; margin-bottom:8px;">
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn primary" onclick="promote()">Promote</button>
+          </div>
+        </form>
+        <script>
+          function promote(){
+            const u = document.getElementById('promote-input').value.trim();
+            if(!u) return alert('Enter username');
+            fetch('/admin/promote/' + encodeURIComponent(u), {method:'POST'}).then(r=>{
+              if(r.redirected) window.location = r.url;
+              else location.reload();
+            });
+          }
+        </script>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

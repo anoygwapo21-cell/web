@@ -1,44 +1,74 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% block title %}Welcome - Events App{% endblock %}
 {% block content %}
-<div class="dashboard">
-    <div class="header">
-        <h2>Upcoming Events</h2>
-        <form method="GET" action="{{ url_for('index') }}" class="search-form">
-            <input type="text" name="search" placeholder="Search events..." value="{{ search_query }}">
-            <button type="submit">Search</button>
-        </form>
+  <section class="hero">
+    <div class="hero-inner container">
+      <div class="hero-copy">
+        <h2 class="hero-title">Celebrate, Connect, and Never Miss an Event</h2>
+        <p class="hero-sub">
+          Create, discover, and get notified about upcoming events — all in one simple, secure place.
+          Sign up to start organizing and browsing events tailored to you.
+        </p>
+
+        <div class="hero-cta">
+          <a class="btn primary large" href="{{ url_for('register') }}">Create account</a>
+          <!-- Admin sign-in shortcut: takes user to the login page and then redirects to admin dashboard -->
+          <a class="btn ghost large" href="{{ url_for('login') }}?next={{ url_for('admin_dashboard') }}">Admin sign in</a>
+          <a class="btn ghost large" href="{{ url_for('login') }}" style="margin-left:8px;">Sign in</a>
+        </div>
+      </div>
+
+      <div class="hero-card" aria-hidden="true">
+        <div class="card-preview">
+          <div class="preview-header">
+            <span class="dot dot-green"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-red"></span>
+          </div>
+
+          <div class="preview-body">
+            <h4>Next: Community Meetup</h4>
+            <p class="muted">2025-11-15 · 18:00</p>
+            <p class="muted small">Venue: Downtown Hall · Free</p>
+            <div class="badge">Reminder in 24h</div>
+          </div>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <a href="{{ url_for('add_event') }}" class="add-btn">+ Add New Event</a>
+  <section class="features container">
+    <h3 class="section-title">What you’ll get</h3>
+    <div class="grid">
+      <div class="feature">
+        <svg class="feature-ico" width="44" height="44" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2v10l3-2 4 6-2 1-5-3V2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h4>Reliable reminders</h4>
+        <p class="muted">Get timely alerts so you never miss an event.</p>
+      </div>
 
-    {% if events %}
-    <table>
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Description</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for event in events %}
-            <tr>
-                <td>{{ event.title }}</td>
-                <td>{{ event.date }}</td>
-                <td>{{ event.time }}</td>
-                <td>{{ event.description }}</td>
-                <td>
-                    <a href="{{ url_for('edit_event', id=event.id) }}" class="edit">Edit</a>
-                    <a href="{{ url_for('delete_event', id=event.id) }}" class="delete" onclick="return confirm('Delete this event?')">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p class="no-events">No events found.</p>
-    {% endif %}
-</div>
+      <div class="feature">
+        <svg class="feature-ico" width="44" height="44" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7v10a2 2 0 0 0 2 2h4l2-3h6a2 2 0 0 0 2-2V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h4>Private & secure</h4>
+        <p class="muted">Only registered users can view and manage event details.</p>
+      </div>
+
+      <div class="feature">
+        <svg class="feature-ico" width="44" height="44" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h4>Sleek interface</h4>
+        <p class="muted">A clear, modern layout that makes event browsing simple.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta container">
+    <div class="cta-inner">
+      <div>
+        <h3>Ready to organize your events?</h3>
+        <p class="muted">Sign up in seconds and start creating reminders and invitations.</p>
+      </div>
+      <div>
+        <a class="btn primary" href="{{ url_for('register') }}">Get started — it’s free</a>
+      </div>
+    </div>
+  </section>
 {% endblock %}

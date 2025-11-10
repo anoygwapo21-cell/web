@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Events - Events App{% endblock %}
+{% block content %}
+  <div class="events-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;">
+    <div>
+      <h2 class="page-title">Upcoming & All Events</h2>
+      <p class="muted" style="margin-top:4px;font-size:0.95rem;">public events and your events in one place.</p>
+    </div>
+
+    <div>
+      <!-- Add Event button visible to any logged-in user -->
+      <a class="btn primary" href="{{ url_for('create_event') }}">+ Add Event</a>
+    </div>
+  </div>
+
+  {% if notifications %}
+    <div class="notifications compact">
+      <strong>Upcoming events in the next {{ notify_hours }} hours</strong>
+      <ul>
+        {% for n in notifications %}
+          <li>
+            <strong>{{ n.title }}</strong> — {{ n.event_datetime.strftime('%Y-%m-%d %H:%M') if n.event_datetime else 'Unknown time' }}
+            <div class="muted small">{{ n.description or '' }}</div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <section class="event-cards">
+    {% if events %}
+      <ul class="event-cards-list">
+        {% for e in events %}
+          <li class="event-card" aria-labelledby="event-title-{{ e.id }}">
+            <div class="event-card-left">
+              {% if e.event_datetime %}
+                <div class="date-pill">
+                  <div class="date-month">{{ e.event_datetime.strftime('%b') }}</div>
+                  <div class="date-day">{{ e.event_datetime.strftime('%d') }}</div>
+                </div>
+              {% else %}
+                <div class="date-pill empty"><div class="date-month">—</div><div class="date-day">—</div></div>
+              {% endif %}
+            </div>
+
+            <div class="event-card-main">
+              <div class="event-card-top">
+                <h3 id="event-title-{{ e.id }}" class="event-title">{{ e.title }}</h3>
+
+                <div class="event-badges">
+                  {% if e.visible_to_all %}
+                    <span class="badge badge-pill badge-soft">Public</span>
+                  {% else %}
+                    {% if e.created_by == session.get('user_id') %}
+                      <span class="badge badge-pill badge-soft">Private (yours)</span>
+                    {% else %}
+                      <span class="badge badge-pill badge-muted">Private</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="event-meta">
+                <span class="muted small">
+                  {{ e.event_datetime.strftime('%Y-%m-%d %H:%M') if e.event_datetime else 'No date' }}
+                </span>
+                {% if e.location %}
+                  <span class="muted small"> · {{ e.location }}</span>
+                {% endif %}
+              </div>
+
+              <p class="event-desc muted">{{ e.description or '' }}</p>
+
+              <div class="event-foot">
+                <div class="creator muted small">
+                  {% if e.created_by == session.get('user_id') %} Created by you
+                  {% else %} Created by user #{{ e.created_by }} {% endif %}
+                </div>
+                <div class="actions">
+                  {% if e.created_by == session.get('user_id') %}
+                    <!-- owner actions could go here in future (edit/delete) -->
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-state">
+        <p>No events found. Be the first to <a href="{{ url_for('create_event') }}">create an event</a>.</p>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

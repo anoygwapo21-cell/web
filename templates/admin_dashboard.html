@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - Events App{% endblock %}
+{% block content %}
+  <section class="container fade-in">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+      <h2>Admin dashboard</h2>
+      <div>
+        <a class="btn primary" href="{{ url_for('create_event') }}">+ Add Event</a>
+      </div>
+    </div>
+
+    <div class="form" style="padding:12px;">
+      <h3>Users</h3>
+      <div class="table-wrap" style="margin-top:8px;">
+        <table>
+          <thead><tr><th>Username</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for u in users %}
+              <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.role or 'user' }}</td>
+                <td>{{ u.created_at }}</td>
+                <td>
+                  {% if u.role != 'admin' %}
+                    <form method="post" action="{{ url_for('promote_user', username=u.username) }}" style="display:inline;">
+                      <button class="btn ghost" type="submit">Promote</button>
+                    </form>
+                  {% else %}
+                    <span class="muted">Admin</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="form" style="padding:12px; margin-top:16px;">
+      <h3>Events</h3>
+      <div class="table-wrap" style="margin-top:8px;">
+        <table>
+          <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Public</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for e in events %}
+              <tr>
+                <td>{{ e.title }}</td>
+                <td>{{ e.event_datetime.strftime('%Y-%m-%d %H:%M') if e.event_datetime else 'Unknown' }}</td>
+                <td>{{ e.location }}</td>
+                <td>{% if e.visible_to_all %}Yes{% else %}No{% endif %}</td>
+                <td>
+                  <!-- Delete -->
+                  <form method="post" action="{{ url_for('admin_delete_event', event_id=e.id) }}" style="display:inline;" onsubmit="return confirm('Delete this event?');">
+                    <button class="btn ghost" type="submit">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+{% endblock %}

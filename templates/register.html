@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Register - Events App{% endblock %}
+{% block content %}
+  <h2>Create an account</h2>
+  <form method="post" class="form">
+    <label>Username
+      <input type="text" name="username" required>
+    </label>
+    <label>Password
+      <input type="password" name="password" required>
+    </label>
+    <div class="form-actions">
+      <button type="submit" class="btn primary">Register</button>
+      <a href="{{ url_for('login') }}" class="btn">Already have an account?</a>
+    </div>
+  </form>
+{% endblock %}
