@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-container">
+    <h2>Add New Event</h2>
+    <form method="POST">
+        <label>Event Title</label>
+        <input type="text" name="title" required>
+
+        <label>Date</label>
+        <input type="date" name="date" required>
+
+        <label>Time</label>
+        <input type="time" name="time" required>
+
+        <label>Description</label>
+        <textarea name="description" rows="4"></textarea>
+
+        <button type="submit">Add Event</button>
+        <a href="{{ url_for('index') }}" class="back">Cancel</a>
+    </form>
+</div>
+{% endblock %}
