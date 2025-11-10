@@ -1,5 +1,5 @@
-# Updated app.py (only change is init_db now ensures a default admin user exists)
-from flask import Flask, render_template, request, redirect, url_for, session, flash, g
+# Replace your app.py with this updated file (keeps existing functionality and adds edit/delete routes)
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g, abort
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -89,11 +89,7 @@ def init_db():
         db.commit()
         print(f"Bootstrapped admin user from env: {BOOT_ADMIN_USERNAME}")
 
-    # Ensure a default admin user exists with credentials:
-    # username: admin
-    # password: admin123
-    # NOTE: This creates a default admin if there is no user named 'admin' already.
-    # This is convenient for development but insecure for production; change the password immediately.
+    # Ensure a default admin user exists with credentials (dev convenience)
     try:
         admin_exists = db.execute("SELECT id FROM users WHERE username = ?", ("admin",)).fetchone()
         if not admin_exists:
@@ -105,7 +101,6 @@ def init_db():
             db.commit()
             print("Inserted default admin user: 'admin' (password: admin123). Please change immediately.")
     except Exception:
-        # If anything fails here, we don't want the app to crash on init_db.
         pass
 
 
@@ -129,6 +124,16 @@ def admin_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
+
+
+def is_event_owner_or_admin(event_row):
+    """Helper: returns True if current session user can manage the event."""
+    if "user_id" not in session:
+        return False
+    try:
+        return session.get("role") == "admin" or (event_row and event_row["created_by"] == session.get("user_id"))
+    except Exception:
+        return False
 
 
 @app.route("/")
@@ -280,6 +285,101 @@ def create_event():
         return redirect(url_for("events"))
 
     return render_template("create_event.html")
+
+
+# --- New: Edit event (owner or admin) ---
+@app.route("/events/<int:event_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_event(event_id):
+    db = get_db()
+    ev = db.execute("SELECT * FROM events WHERE id = ?", (event_id,)).fetchone()
+    if not ev:
+        flash("Event not found.", "danger")
+        return redirect(url_for("events"))
+
+    # permission: owner or admin
+    if not (session.get("role") == "admin" or ev["created_by"] == session.get("user_id")):
+        flash("You are not allowed to edit this event.", "danger")
+        return redirect(url_for("events"))
+
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        description = request.form.get("description", "").strip()
+        event_dt = request.form.get("event_datetime", "").strip()
+        location = request.form.get("location", "").strip()
+
+        # only admins may change visibility
+        visible_to_all = ev["visible_to_all"]  # keep current default
+        if session.get("role") == "admin":
+            visible_to_all = 1 if request.form.get("visible_to_all") == "on" else 0
+
+        if not title or not event_dt:
+            flash("Title and event date/time are required.", "danger")
+            return redirect(url_for("edit_event", event_id=event_id))
+
+        try:
+            if "T" in event_dt:
+                dt = datetime.fromisoformat(event_dt)
+            else:
+                dt = datetime.strptime(event_dt, "%Y-%m-%d %H:%M:%S")
+            event_iso = dt.strftime("%Y-%m-%d %H:%M:%S")
+        except Exception:
+            flash("Invalid date/time format. Use the date/time picker.", "danger")
+            return redirect(url_for("edit_event", event_id=event_id))
+
+        db.execute(
+            "UPDATE events SET title=?, description=?, event_datetime=?, location=?, visible_to_all=? WHERE id=?",
+            (title, description, event_iso, location, visible_to_all, event_id),
+        )
+        db.commit()
+        flash("Event updated.", "success")
+        return redirect(url_for("events"))
+
+    # GET -> prefill form values
+    # convert event_datetime to an HTML datetime-local friendly value if possible (YYYY-MM-DDTHH:MM)
+    ed = ev["event_datetime"]
+    dt_value = ""
+    if ed:
+        try:
+            if " " in ed:
+                dt = datetime.strptime(ed, "%Y-%m-%d %H:%M:%S")
+                dt_value = dt.strftime("%Y-%m-%dT%H:%M")
+            elif "T" in ed:
+                dt_value = ed[:16]
+            else:
+                dt_value = ed
+        except Exception:
+            dt_value = ed
+    event = {
+        "id": ev["id"],
+        "title": ev["title"],
+        "description": ev["description"],
+        "event_datetime": dt_value,
+        "location": ev["location"] or "",
+        "visible_to_all": bool(ev["visible_to_all"]),
+    }
+    return render_template("edit_event.html", event=event)
+
+
+# --- New: Delete event (owner or admin) ---
+@app.route("/events/<int:event_id>/delete", methods=["POST"])
+@login_required
+def delete_event(event_id):
+    db = get_db()
+    ev = db.execute("SELECT * FROM events WHERE id = ?", (event_id,)).fetchone()
+    if not ev:
+        flash("Event not found.", "danger")
+        return redirect(url_for("events"))
+
+    # permission: owner or admin
+    if not (session.get("role") == "admin" or ev["created_by"] == session.get("user_id")):
+        flash("You are not allowed to delete this event.", "danger")
+        return redirect(url_for("events"))
+
+    db.execute("DELETE FROM events WHERE id = ?", (event_id,))
+    db.commit()
+    flash("Event deleted.", "info")
+    return redirect(url_for("events"))
 
 
 @app.route("/admin/promote/<username>", methods=["POST"])

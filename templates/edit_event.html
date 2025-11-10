@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Edit Event - Events App{% endblock %}
+{% block content %}
+  <section class="container fade-in">
+    <div class="form" style="max-width:720px; margin:auto;">
+      <h2>Edit event</h2>
+      <form method="post" class="form-container">
+        <label>Title
+          <input type="text" name="title" required value="{{ event.title }}">
+        </label>
+
+        <label>Description
+          <textarea name="description" rows="4">{{ event.description }}</textarea>
+        </label>
+
+        <label>Date & time
+          <input type="datetime-local" name="event_datetime" required value="{{ event.event_datetime }}">
+        </label>
+
+        <label>Location
+          <input type="text" name="location" placeholder="Optional location" value="{{ event.location }}">
+        </label>
+
+        {% if session.get('role') == 'admin' %}
+        <label style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" name="visible_to_all" {% if event.visible_to_all %}checked{% endif %}>
+          <span>Visible to all users (public event)</span>
+        </label>
+        {% endif %}
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn primary" type="submit">Save changes</button>
+          <a class="btn ghost" href="{{ url_for('events') }}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </section>
+{% endblock %}

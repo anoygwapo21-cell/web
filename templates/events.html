@@ -4,11 +4,10 @@
   <div class="events-header" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;">
     <div>
       <h2 class="page-title">Upcoming & All Events</h2>
-      <p class="muted" style="margin-top:4px;font-size:0.95rem;">public events and your events in one place.</p>
+      <p class="muted" style="margin-top:4px;font-size:0.95rem;">Clean, professional list — public events and your events in one place.</p>
     </div>
 
     <div>
-      <!-- Add Event button visible to any logged-in user -->
       <a class="btn primary" href="{{ url_for('create_event') }}">+ Add Event</a>
     </div>
   </div>
@@ -76,9 +75,14 @@
                   {% if e.created_by == session.get('user_id') %} Created by you
                   {% else %} Created by user #{{ e.created_by }} {% endif %}
                 </div>
+
                 <div class="actions">
-                  {% if e.created_by == session.get('user_id') %}
-                    <!-- owner actions could go here in future (edit/delete) -->
+                  {% if e.created_by == session.get('user_id') or session.get('role') == 'admin' %}
+                    <a class="btn ghost" href="{{ url_for('edit_event', event_id=e.id) }}">Edit</a>
+
+                    <form method="post" action="{{ url_for('delete_event', event_id=e.id) }}" style="display:inline;" onsubmit="return confirm('Delete this event?');">
+                      <button class="btn ghost" type="submit">Delete</button>
+                    </form>
                   {% endif %}
                 </div>
               </div>
